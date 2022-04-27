@@ -18,7 +18,7 @@ class LateralPlanner:
 
     self.last_cloudlog_t = 0
     self.steer_rate_cost = CP.steerRateCost
-    self.wheelbase = CP.wheelbase
+    self.r = 0.0
     self.solution_invalid_cnt = 0
 
     self.path_xyz = np.zeros((TRAJECTORY_SIZE, 3))
@@ -80,7 +80,7 @@ class LateralPlanner:
     assert len(y_pts) == LAT_MPC_N + 1
     assert len(heading_pts) == LAT_MPC_N + 1
     # self.x0[4] = v_ego
-    p = np.array([v_ego, self.wheelbase])
+    p = np.array([v_ego, self.r])
     self.lat_mpc.run(self.x0,
                      p,
                      y_pts,
