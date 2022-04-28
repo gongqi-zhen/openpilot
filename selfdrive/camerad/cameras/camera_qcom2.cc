@@ -27,9 +27,14 @@
 
 extern ExitHandler do_exit;
 
+// TODO: use values from CameraInfo during cam init instead of these constants
 const size_t FRAME_WIDTH = 1928;
 const size_t FRAME_HEIGHT = 1208;
 const size_t FRAME_STRIDE = 2896;  // for 12 bit output. 1928 * 12 / 8 + 4 (alignment)
+
+const size_t DATA_HEIGHT = 2;
+const size_t STATS_HEIGHT = 2;
+const size_t EXTRA_HEIGHT = DATA_HEIGHT + STATS_HEIGHT;
 
 const int MIPI_SETTLE_CNT = 33;  // Calculated by camera_freqs.py
 
@@ -38,9 +43,11 @@ CameraInfo cameras_supported[CAMERA_ID_MAX] = {
     .frame_width = FRAME_WIDTH,
     .frame_height = FRAME_HEIGHT,
     .frame_stride = FRAME_STRIDE,
+    .extra_height = EXTRA_HEIGHT,
+    .frame_offset = DATA_HEIGHT,
     .bayer = true,
     .bayer_flip = 1,
-    .hdr = false
+    .hdr = false,
   },
   [CAMERA_ID_IMX390] = {
     .frame_width = FRAME_WIDTH,
@@ -48,7 +55,7 @@ CameraInfo cameras_supported[CAMERA_ID_MAX] = {
     .frame_stride = FRAME_STRIDE,
     .bayer = true,
     .bayer_flip = 1,
-    .hdr = false
+    .hdr = false,
   },
 };
 
@@ -481,9 +488,9 @@ void CameraState::config_isp(int io_mem_handle, int fence, int request_id, int b
     io_cfg[0].mem_handle[0] = io_mem_handle;
 		io_cfg[0].planes[0] = (struct cam_plane_cfg){
 		 .width = FRAME_WIDTH,
-		 .height = FRAME_HEIGHT,
+		 .height = FRAME_HEIGHT + EXTRA_HEIGHT,
 		 .plane_stride = FRAME_STRIDE,
-		 .slice_height = FRAME_HEIGHT,
+		 .slice_height = FRAME_HEIGHT + EXTRA_HEIGHT,
 		 .meta_stride = 0x0,    // YUV has meta(stride=0x400, size=0x5000)
 		 .meta_size = 0x0,
 		 .meta_offset = 0x0,
@@ -680,8 +687,8 @@ void CameraState::camera_open() {
       .right_width = FRAME_WIDTH,
 
       .line_start = 0,
-      .line_stop = FRAME_HEIGHT - 1,
-      .height = FRAME_HEIGHT,
+      .line_stop = FRAME_HEIGHT + EXTRA_HEIGHT - 1,
+      .height = FRAME_HEIGHT + EXTRA_HEIGHT,
 
       .pixel_clk = 0x0,
       .batch_size = 0x0,
@@ -694,7 +701,7 @@ void CameraState::camera_open() {
           .res_type = CAM_ISP_IFE_OUT_RES_RDI_0,
           .format = CAM_FORMAT_MIPI_RAW_12,
           .width = FRAME_WIDTH,
-          .height = FRAME_HEIGHT,
+          .height = FRAME_HEIGHT + EXTRA_HEIGHT,
           .comp_grp_id = 0x0, .split_point = 0x0, .secure_mode = 0x0,
       },
   };

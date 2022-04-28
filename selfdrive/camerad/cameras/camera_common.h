@@ -56,6 +56,8 @@ typedef struct CameraInfo {
   bool bayer;
   int bayer_flip;
   bool hdr;
+  int frame_offset = 0;
+  int extra_height = 0;
 } CameraInfo;
 
 typedef struct FrameMetadata {
