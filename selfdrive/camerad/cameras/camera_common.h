@@ -58,6 +58,8 @@ typedef struct CameraInfo {
   bool hdr;
   int frame_offset = 0;
   int extra_height = 0;
+  int registers_offset = -1;
+  int stats_offset = -1;
 } CameraInfo;
 
 typedef struct FrameMetadata {

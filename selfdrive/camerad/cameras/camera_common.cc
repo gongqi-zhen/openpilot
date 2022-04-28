@@ -147,6 +147,24 @@ bool CameraBuf::acquire() {
 
   double start_time = millis_since_boot();
 
+  if (camera_state->ci.registers_offset >= 0) {
+    size_t registers_offset = camera_state->ci.frame_stride * camera_state->ci.registers_offset;
+    uint8_t *registers = (uint8_t*)camera_bufs[cur_buf_idx].addr + registers_offset;
+    for (int i = 0; i < 64; i++){
+      printf("%02x ", registers[i]);
+    }
+    printf("\n");
+  }
+  if (camera_state->ci.stats_offset >= 0) {
+    size_t stats_offset = camera_state->ci.frame_stride * camera_state->ci.stats_offset;
+    uint8_t *stats = (uint8_t*)camera_bufs[cur_buf_idx].addr + stats_offset;
+    for (int i = 0; i < 64; i++){
+      printf("%02x ", stats[i]);
+    }
+    printf("\n");
+  }
+
+
   if (debayer) {
     float gain = 0.0;
     float black_level = 42.0;
