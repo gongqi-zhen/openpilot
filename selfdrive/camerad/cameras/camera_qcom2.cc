@@ -923,17 +923,14 @@ std::map<uint16_t, std::pair<int, int>> CameraState::build_register_lut(uint8_t 
 
   std::map<uint16_t, std::pair<int, int>> registers;
   for (int register_row = 0; register_row < 2; register_row++) {
-
     uint8_t *registers_raw = data + FRAME_STRIDE * register_row;
-
     assert(registers_raw[0] == 0x0a); // Start of line
 
     int value_tag_count = 0;
     int first_val_idx = 0;
     uint16_t cur_addr = 0;
 
-    int i = 1;
-    while (i <= max_i[register_row]) {
+    for (int i = 1; i <= max_i[register_row]; i = get_next_idx(get_next_idx(i))) {
       int val_idx = get_next_idx(i);
 
       uint8_t tag = registers_raw[i];
@@ -956,8 +953,6 @@ std::map<uint16_t, std::pair<int, int>> CameraState::build_register_lut(uint8_t 
 
         value_tag_count++;
       }
-
-      i = get_next_idx(val_idx);
     }
   }
   return registers;
