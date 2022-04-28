@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <map>
+#include <utility>
 
 #include <media/cam_req_mgr.h>
 
@@ -61,6 +62,9 @@ public:
   int camera_id;
 
   CameraBuf buf;
+
+  std::map<uint16_t, uint16_t> parse_registers(uint8_t *data, std::initializer_list<uint16_t> addrs);
+
 private:
   void config_isp(int io_mem_handle, int fence, int request_id, int buf0_mem_handle, int buf0_offset);
   void enqueue_req_multi(int start, int n, bool dp);
@@ -72,9 +76,8 @@ private:
   void sensors_i2c(struct i2c_random_wr_payload* dat, int len, int op_code, bool data_word);
 
   // Register parsing
-  std::map<uint16_t, int> register_lut;
-  std::map<uint16_t, int> build_register_lut(uint8_t *data);
-  std::map<uint16_t, uint16_t> parse_registers(uint8_t *data, std::initializer_list<uint16_t> addrs);
+  std::map<uint16_t, std::pair<int, int>> register_lut;
+  std::map<uint16_t, std::pair<int, int>> build_register_lut(uint8_t *data);
 };
 
 typedef struct MultiCameraState {

@@ -149,7 +149,7 @@ bool CameraBuf::acquire() {
 
   if (camera_state->ci.registers_offset >= 0) {
     uint8_t *data = (uint8_t*)camera_bufs[cur_buf_idx].addr + camera_state->ci.registers_offset;
-    auto registers = camera_state->parse_registers(data, {0x2000, 0x20002, 0x20b0, 0x20b2, 0x30c6, 0x30c8, 0x30ca, 0x30cc});
+    auto registers = camera_state->parse_registers(data, {0x2000, 0x2002, 0x20b0, 0x20b2, 0x30c6, 0x30c8, 0x30ca, 0x30cc});
     uint32_t frame_id = ((uint32_t)registers[0x2000] << 16) | registers[0x2002];
     printf("%d - frame id: %d\n", camera_state->camera_num, frame_id);
 
