@@ -102,6 +102,10 @@ struct i2c_random_wr_payload init_array_ar0231[] = {
   {0x3370, 0x03B1}, // DBLC
   {0x3044, 0x0400}, // DARK_CONTROL
 
+  // Enable temperature sensor
+  {0x30B4, 0x0007}, // TEMPSENS0_CTRL_REG
+  {0x30B8, 0x0007}, // TEMPSENS1_CTRL_REG
+
   // Enable dead pixel correction using
   // the 1D line correction scheme
   {0x31E0, 0x0003},

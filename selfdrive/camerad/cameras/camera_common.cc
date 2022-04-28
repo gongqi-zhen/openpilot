@@ -148,22 +148,21 @@ bool CameraBuf::acquire() {
   double start_time = millis_since_boot();
 
   if (camera_state->ci.registers_offset >= 0) {
-    size_t registers_offset = camera_state->ci.frame_stride * camera_state->ci.registers_offset;
-    uint8_t *registers = (uint8_t*)camera_bufs[cur_buf_idx].addr + registers_offset;
-    for (int i = 0; i < 64; i++){
-      printf("%02x ", registers[i]);
-    }
-    printf("\n");
-  }
-  if (camera_state->ci.stats_offset >= 0) {
-    size_t stats_offset = camera_state->ci.frame_stride * camera_state->ci.stats_offset;
-    uint8_t *stats = (uint8_t*)camera_bufs[cur_buf_idx].addr + stats_offset;
-    for (int i = 0; i < 64; i++){
-      printf("%02x ", stats[i]);
-    }
-    printf("\n");
-  }
+    uint8_t *data = (uint8_t*)camera_bufs[cur_buf_idx].addr + camera_state->ci.registers_offset;
+    auto registers = camera_state->parse_all_registers(data);
+    uint32_t frame_id = ((uint32_t)registers[0x2000] << 16) | registers[0x2002];
+    printf("%d - frame id: %d\n", camera_state->camera_num, frame_id);
 
+    double slope_0 = (125.0 - 55.0) / ((double)registers[0x30c6] - (double)registers[0x30c8]);
+    double t0_0 = 55.0 - slope_0 * (double)registers[0x30c8];
+    double temp_0 = t0_0 + slope_0 * registers[0x20b0];
+    printf("%d - temp 0 (top): %.2f\n", camera_state->camera_num, temp_0);
+
+    double slope_1 = (125.0 - 55.0) / ((double)registers[0x30ca] - (double)registers[0x30cc]);
+    double t0_1 = 55.0 - slope_1 * (double)registers[0x30cc];
+    double temp_1 = t0_1 + slope_1 * registers[0x20b2];
+    printf("%d - temp 1 (bottom): %.2f\n", camera_state->camera_num, temp_1);
+  }
 
   if (debayer) {
     float gain = 0.0;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <map>
 
 #include <media/cam_req_mgr.h>
 
@@ -35,6 +36,7 @@ public:
 
   void handle_camera_event(void *evdat);
   void set_camera_exposure(float grey_frac);
+  std::map<uint16_t, uint16_t> parse_all_registers(uint8_t *data);
 
   void sensors_start();
 

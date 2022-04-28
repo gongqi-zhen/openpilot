@@ -915,6 +915,52 @@ void cameras_close(MultiCameraState *s) {
   delete s->pm;
 }
 
+std::map<uint16_t, uint16_t> CameraState::parse_all_registers(uint8_t *data) {
+  int max_i[] = {1828 / 2 * 3, 1500 / 2 * 3};
+  auto get_next_idx = [](int cur_idx) {
+    return (cur_idx % 3 == 1) ? cur_idx + 2 : cur_idx + 1; // Every third byte is padding
+  };
+
+  std::map<uint16_t, uint16_t> registers;
+  for (int register_row = 0; register_row < 2; register_row++) {
+    uint8_t *registers_raw = data + FRAME_STRIDE * register_row;
+
+    assert(registers_raw[0] == 0x0a); // Start of line
+
+    int value_tag_count = 0;
+    uint16_t cur_addr = 0;
+    uint16_t cur_val = 0;
+
+    int i = 1;
+    while (i <= max_i[register_row]) {
+      uint8_t tag = registers_raw[i];
+      uint16_t val = registers_raw[get_next_idx(i)];
+
+      if (tag == 0xAA) { // Register MSB tag
+        cur_addr = val << 8;
+      } else if (tag == 0xA5) { // Register LSB tag
+        cur_addr |= val;
+        cur_addr -= 2; // Next value tag will increment address again
+      } else if (tag == 0x5A) { // Value tag
+
+        // First tag
+        if (value_tag_count % 2 == 0) {
+          cur_addr += 2;
+          cur_val = val << 8;
+        } else {
+          cur_val |= val;
+          registers[cur_addr] = cur_val;
+        }
+
+        value_tag_count++;
+      }
+      
+      i = get_next_idx(get_next_idx(i));
+    }
+  }
+  return registers;
+}
+
 void CameraState::handle_camera_event(void *evdat) {
   if (!enabled) return;
   struct cam_req_mgr_message *event_data = (struct cam_req_mgr_message *)evdat;
@@ -1178,3 +1224,4 @@ void cameras_run(MultiCameraState *s) {
 
   cameras_close(s);
 }
+
