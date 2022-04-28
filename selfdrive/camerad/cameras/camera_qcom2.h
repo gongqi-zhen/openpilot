@@ -36,7 +36,6 @@ public:
 
   void handle_camera_event(void *evdat);
   void set_camera_exposure(float grey_frac);
-  std::map<uint16_t, uint16_t> parse_all_registers(uint8_t *data);
 
   void sensors_start();
 
@@ -71,6 +70,11 @@ private:
   int sensors_init();
   void sensors_poke(int request_id);
   void sensors_i2c(struct i2c_random_wr_payload* dat, int len, int op_code, bool data_word);
+
+  // Register parsing
+  std::map<uint16_t, int> register_lut;
+  std::map<uint16_t, int> build_register_lut(uint8_t *data);
+  std::map<uint16_t, uint16_t> parse_registers(uint8_t *data, std::initializer_list<uint16_t> addrs);
 };
 
 typedef struct MultiCameraState {

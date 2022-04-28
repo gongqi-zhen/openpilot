@@ -47,7 +47,7 @@ CameraInfo cameras_supported[CAMERA_ID_MAX] = {
 
     .registers_offset = 0,
     .frame_offset = REGISTERS_HEIGHT,
-    .stats_offset = REGISTERS_HEIGHT + FRAME_HEIGHT, 
+    .stats_offset = REGISTERS_HEIGHT + FRAME_HEIGHT,
 
     .bayer = true,
     .bayer_flip = 1,
@@ -915,21 +915,21 @@ void cameras_close(MultiCameraState *s) {
   delete s->pm;
 }
 
-std::map<uint16_t, uint16_t> CameraState::parse_all_registers(uint8_t *data) {
+std::map<uint16_t, int> CameraState::build_register_lut(uint8_t *data) {
   int max_i[] = {1828 / 2 * 3, 1500 / 2 * 3};
   auto get_next_idx = [](int cur_idx) {
     return (cur_idx % 3 == 1) ? cur_idx + 2 : cur_idx + 1; // Every third byte is padding
   };
 
-  std::map<uint16_t, uint16_t> registers;
+  std::map<uint16_t, int> registers;
   for (int register_row = 0; register_row < 2; register_row++) {
+
     uint8_t *registers_raw = data + FRAME_STRIDE * register_row;
 
     assert(registers_raw[0] == 0x0a); // Start of line
 
     int value_tag_count = 0;
     uint16_t cur_addr = 0;
-    uint16_t cur_val = 0;
 
     int i = 1;
     while (i <= max_i[register_row]) {
@@ -946,19 +946,29 @@ std::map<uint16_t, uint16_t> CameraState::parse_all_registers(uint8_t *data) {
         // First tag
         if (value_tag_count % 2 == 0) {
           cur_addr += 2;
-          cur_val = val << 8;
         } else {
-          cur_val |= val;
-          registers[cur_addr] = cur_val;
+          registers[cur_addr] = i + FRAME_STRIDE * register_row;
         }
 
         value_tag_count++;
       }
-      
+
       i = get_next_idx(get_next_idx(i));
     }
   }
   return registers;
+}
+
+std::map<uint16_t, uint16_t> CameraState::parse_registers(uint8_t *data, std::initializer_list<uint16_t> addrs) {
+  if (register_lut.empty()) {
+    register_lut = build_register_lut(data);
+  }
+
+  std::map<uint16_t, uint16_t> registers;
+  for (uint16_t addr : addrs) {
+    int offset = register_lut[addr];
+    registers[addr] = ((uint16_t)data[offset] << 8) | data[offset + 1];
+  }
 }
 
 void CameraState::handle_camera_event(void *evdat) {
