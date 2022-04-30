@@ -1,6 +1,8 @@
 
 ### 何をするのか
 ### どんな仕組みか
+### 私にも試せるか
+https://github.com/commaai/openpilot/blob/master/tools/README.md
 
 ### Product launch event
 Wednesday, May 4th, 10AM PST "The Future of People"
