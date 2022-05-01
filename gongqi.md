@@ -2,8 +2,9 @@
 ### 何をするのか
 ### どんな仕組みか
 ### 私にも試せるか
-#### WSL
+#### Setup ( on WSL )
 - https://github.com/commaai/openpilot/blob/master/tools/README.md
+- https://www.maruweb.jp.net/wp/?p=4221
 
 #### with the CARLA simulator. 
 - https://github.com/commaai/openpilot/blob/master/tools/sim/README.md
