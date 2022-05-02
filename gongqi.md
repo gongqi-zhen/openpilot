@@ -4,7 +4,14 @@
 ### 私にも試せるか
 #### Setup ( on WSL )
 - https://github.com/commaai/openpilot/blob/master/tools/README.md
-- https://www.maruweb.jp.net/wp/?p=4221
+
+##### set up an Xorg server. (VcXsrv)
+- https://techcommunity.microsoft.com/t5/windows-dev-appconsult/running-wsl-gui-apps-on-windows-10/ba-p/1493242
+- コピペしたい(github PAT)
+  https://www.maruweb.jp.net/wp/?p=4221
+
+- カーソルが見えないためRLoginする
+  https://qiita.com/kenchan1193/items/896c416a4ee89cd4f95b
 
 #### with the CARLA simulator. 
 - https://github.com/commaai/openpilot/blob/master/tools/sim/README.md
