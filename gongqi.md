@@ -2,6 +2,7 @@
 ### 何をするのか
 ### どんな仕組みか
 ### 私にも試せるか
+
 #### Setup ( on WSL )
 - https://github.com/commaai/openpilot/blob/master/tools/README.md
 
@@ -12,6 +13,9 @@
 
 - カーソルが見えないためRLoginする
   https://qiita.com/kenchan1193/items/896c416a4ee89cd4f95b
+
+- ipv6でRDPに接続できた
+  https://docs.microsoft.com/ja-jp/windows/wsl/networking
 
 #### with the CARLA simulator. 
 - https://github.com/commaai/openpilot/blob/master/tools/sim/README.md
