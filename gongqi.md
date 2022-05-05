@@ -27,6 +27,8 @@
 Wednesday, May 4th, 10AM PST "The Future of People"
 5/5 2AM JST
  - https://twitter.com/comma_ai/status/1519761521760342016
+ - Body support already in master, and will be in release(0.8.14) by the time your body ships.
+   (it's a car, wheels on a CAN bus) (commabody.com $999 ships in 1-3months, FIFO)
 
 ### 他情報
 - https://en.wikipedia.org/wiki/Openpilot
