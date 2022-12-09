@@ -4,38 +4,23 @@
 #include <string>
 #include <QApplication>
 #include <QBuffer>
-#include <QDebug>
 
 #include "common/util.h"
 #include "common/timing.h"
+#include "common/swaglog.h"
 #include "selfdrive/ui/qt/maps/map_helpers.h"
 
 const float DEFAULT_ZOOM = 13.5; // Don't go below 13 or features will start to disappear
-const int RENDER_HEIGHT = 512, RENDER_WIDTH = 512;
-const int HEIGHT = 256, WIDTH = 256;
+const int HEIGHT = 512, WIDTH = 512;
 const int NUM_VIPC_BUFFERS = 4;
 
 const int EARTH_CIRCUMFERENCE_METERS = 40075000;
 const int PIXELS_PER_TILE = 256;
 
-float get_meters_per_pixel(float lat, float zoom) {
-  float num_tiles = pow(2, zoom+1);
-  float meters_per_tile = cos(DEG2RAD(lat)) * EARTH_CIRCUMFERENCE_METERS / num_tiles;
-  return meters_per_tile / PIXELS_PER_TILE;
-}
-
 float get_zoom_level_for_scale(float lat, float meters_per_pixel) {
   float meters_per_tile = meters_per_pixel * PIXELS_PER_TILE;
   float num_tiles = cos(DEG2RAD(lat)) * EARTH_CIRCUMFERENCE_METERS / meters_per_tile;
   return log2(num_tiles) - 1;
-}
-
-void downsample(uint8_t *src, uint8_t *dst) {
-  for (int r = 0; r < HEIGHT; r++) {
-    for (int c = 0; c < WIDTH; c++) {
-      dst[r*WIDTH + c] = src[(r*2*RENDER_WIDTH + c*2) * 3];
-    }
-  }
 }
 
 
@@ -59,7 +44,7 @@ MapRenderer::MapRenderer(const QMapboxGLSettings &settings, bool online) : m_set
   gl_functions->initializeOpenGLFunctions();
 
   QOpenGLFramebufferObjectFormat fbo_format;
-  fbo.reset(new QOpenGLFramebufferObject(RENDER_WIDTH, RENDER_HEIGHT, fbo_format));
+  fbo.reset(new QOpenGLFramebufferObject(WIDTH, HEIGHT, fbo_format));
 
   std::string style = util::read_file(STYLE_PATH);
   m_map.reset(new QMapboxGL(nullptr, m_settings, fbo->size(), 1));
@@ -69,24 +54,29 @@ MapRenderer::MapRenderer(const QMapboxGLSettings &settings, bool online) : m_set
 
   m_map->resize(fbo->size());
   m_map->setFramebufferObject(fbo->handle(), fbo->size());
-  gl_functions->glViewport(0, 0, RENDER_WIDTH, RENDER_HEIGHT);
+  gl_functions->glViewport(0, 0, WIDTH, HEIGHT);
+
+  QObject::connect(m_map.data(), &QMapboxGL::mapLoadingFailed, [=](QMapboxGL::MapLoadingFailure err_code, const QString &reason) {
+    LOGE("Map loading failed with %d: '%s'\n", err_code, reason.toStdString().c_str());
+  });
 
   if (online) {
     vipc_server.reset(new VisionIpcServer("navd"));
     vipc_server->create_buffers(VisionStreamType::VISION_STREAM_MAP, NUM_VIPC_BUFFERS, false, WIDTH, HEIGHT);
     vipc_server->start_listener();
 
-    pm.reset(new PubMaster({"navThumbnail"}));
-    sm.reset(new SubMaster({"liveLocationKalman", "navRoute"}));
+    pm.reset(new PubMaster({"navThumbnail", "mapRenderState"}));
+    sm.reset(new SubMaster({"liveLocationKalman", "navRoute"}, {"liveLocationKalman"}));
 
     timer = new QTimer(this);
+    timer->setSingleShot(true);
     QObject::connect(timer, SIGNAL(timeout()), this, SLOT(msgUpdate()));
-    timer->start(50);
+    timer->start(0);
   }
 }
 
 void MapRenderer::msgUpdate() {
-  sm->update(0);
+  sm->update(1000);
 
   if (sm->updated("liveLocationKalman")) {
     auto location = (*sm)["liveLocationKalman"].getLiveLocationKalman();
@@ -94,7 +84,7 @@ void MapRenderer::msgUpdate() {
     auto orientation = location.getCalibratedOrientationNED();
 
     bool localizer_valid = (location.getStatus() == cereal::LiveLocationKalman::Status::VALID) && pos.getValid();
-    if (localizer_valid) {
+    if (localizer_valid && (sm->rcv_frame("liveLocationKalman") % 10) == 0) {
       updatePosition(QMapbox::Coordinate(pos.getValue()[0], pos.getValue()[1]), RAD2DEG(orientation.getValue()[2]));
     }
   }
@@ -107,6 +97,9 @@ void MapRenderer::msgUpdate() {
     }
     updateRoute(route);
   }
+
+  // schedule next update
+  timer->start(0);
 }
 
 void MapRenderer::updatePosition(QMapbox::Coordinate position, float bearing) {
@@ -114,9 +107,9 @@ void MapRenderer::updatePosition(QMapbox::Coordinate position, float bearing) {
     return;
   }
 
-  // Choose a zoom level that matches the scale of zoom level 13 at latitude 80deg
-  float scale_lat80 = get_meters_per_pixel(80, 13);
-  float zoom = get_zoom_level_for_scale(position.first, scale_lat80);
+  // Choose a scale that ensures above 13 zoom level up to and above 75deg of lat
+  float meters_per_pixel = 2;
+  float zoom = get_zoom_level_for_scale(position.first, meters_per_pixel);
 
   m_map->setCoordinate(position);
   m_map->setBearing(bearing);
@@ -129,14 +122,16 @@ bool MapRenderer::loaded() {
 }
 
 void MapRenderer::update() {
+  double start_t = millis_since_boot();
   gl_functions->glClear(GL_COLOR_BUFFER_BIT);
   m_map->render();
   gl_functions->glFlush();
+  double end_t = millis_since_boot();
 
-  sendVipc();
+  publish((end_t - start_t) / 1000.0);
 }
 
-void MapRenderer::sendVipc() {
+void MapRenderer::publish(const double render_time) {
   if (!vipc_server || !loaded()) {
     return;
   }
@@ -146,17 +141,19 @@ void MapRenderer::sendVipc() {
   VisionBuf* buf = vipc_server->get_buffer(VisionStreamType::VISION_STREAM_MAP);
   VisionIpcBufExtra extra = {
     .frame_id = frame_id,
-    .timestamp_sof = ts,
+    .timestamp_sof = sm->rcv_time("liveLocationKalman"),
     .timestamp_eof = ts,
   };
 
-  assert(cap.sizeInBytes() >= buf->len*4);
+  assert(cap.sizeInBytes() >= buf->len);
   uint8_t* dst = (uint8_t*)buf->addr;
   uint8_t* src = cap.bits();
 
-  // 2x downsample + rgb to grayscale
+  // RGB to greyscale
   memset(dst, 128, buf->len);
-  downsample(src, dst);
+  for (int i = 0; i < WIDTH * HEIGHT; i++) {
+    dst[i] = src[i * 3];
+  }
 
   vipc_server->send(buf, &extra);
 
@@ -178,6 +175,13 @@ void MapRenderer::sendVipc() {
     pm->send("navThumbnail", msg);
   }
 
+  // Send state msg
+  MessageBuilder msg;
+  auto state = msg.initEvent().initMapRenderState();
+  state.setLocationMonoTime(sm->rcv_time("liveLocationKalman"));
+  state.setRenderTime(render_time);
+  pm->send("mapRenderState", msg);
+
   frame_id++;
 }
 
@@ -187,8 +191,10 @@ uint8_t* MapRenderer::getImage() {
   uint8_t* src = cap.bits();
   uint8_t* dst = new uint8_t[WIDTH * HEIGHT];
 
-  // 2x downsample + rgb to grayscale
-  downsample(src, dst);
+  // RGB to greyscale
+  for (int i = 0; i < WIDTH * HEIGHT; i++) {
+    dst[i] = src[i * 3];
+  }
 
   return dst;
 }
