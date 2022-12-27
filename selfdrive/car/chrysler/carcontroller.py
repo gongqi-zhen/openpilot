@@ -45,7 +45,7 @@ class CarController:
         self.hud_count += 1
 
     # steering
-    if self.frame % 2 == 0:
+    if self.frame % self.params.STEER_STEP == 0:
 
       # TODO: can we make this more sane? why is it different for all the cars?
       lkas_control_bit = self.lkas_control_bit_prev
@@ -78,5 +78,6 @@ class CarController:
 
     new_actuators = CC.actuators.copy()
     new_actuators.steer = self.apply_steer_last / self.params.STEER_MAX
+    new_actuators.steerOutputCan = self.apply_steer_last
 
     return new_actuators, can_sends
