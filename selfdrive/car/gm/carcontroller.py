@@ -3,7 +3,7 @@ from common.conversions import Conversions as CV
 from common.numpy_fast import interp
 from common.realtime import DT_CTRL
 from opendbc.can.packer import CANPacker
-from selfdrive.car import apply_std_steer_torque_limits
+from selfdrive.car import apply_driver_steer_torque_limits
 from selfdrive.car.gm import gmcan
 from selfdrive.car.gm.values import DBC, CanBus, CarControllerParams, CruiseButtons
 
@@ -13,6 +13,8 @@ LongCtrlState = car.CarControl.Actuators.LongControlState
 
 # Camera cancels up to 0.1s after brake is pressed, ECM allows 0.5s
 CAMERA_CANCEL_DELAY_FRAMES = 10
+# Enforce a minimum interval between steering messages to avoid a fault
+MIN_STEER_MSG_INTERVAL_MS = 15
 
 
 class CarController:
@@ -28,7 +30,6 @@ class CarController:
     self.cancel_counter = 0
 
     self.lka_steering_cmd_counter = 0
-    self.sent_lka_steering_cmd = False
     self.lka_icon_status_last = (False, False)
 
     self.params = CarControllerParams(self.CP)
@@ -37,7 +38,7 @@ class CarController:
     self.packer_obj = CANPacker(DBC[self.CP.carFingerprint]['radar'])
     self.packer_ch = CANPacker(DBC[self.CP.carFingerprint]['chassis'])
 
-  def update(self, CC, CS):
+  def update(self, CC, CS, now_nanos):
     actuators = CC.actuators
     hud_control = CC.hudControl
     hud_alert = hud_control.visualAlert
@@ -56,24 +57,23 @@ class CarController:
       # - on startup, first few msgs are blocked
       # - until we're in sync with camera so counters align when relay closes, preventing a fault.
       #   openpilot can subtly drift, so this is activated throughout a drive to stay synced
-      out_of_sync = self.lka_steering_cmd_counter % 4 != (CS.camera_lka_steering_cmd_counter + 1) % 4
-      if not self.sent_lka_steering_cmd or out_of_sync:
+      out_of_sync = self.lka_steering_cmd_counter % 4 != (CS.cam_lka_steering_cmd_counter + 1) % 4
+      if CS.loopback_lka_steering_cmd_ts_nanos == 0 or out_of_sync:
         steer_step = self.params.STEER_STEP
 
-    if CS.loopback_lka_steering_cmd_updated:
-      self.lka_steering_cmd_counter += 1
-      self.sent_lka_steering_cmd = True
+    self.lka_steering_cmd_counter += 1 if CS.loopback_lka_steering_cmd_updated else 0
 
-    # Avoid GM EPS faults when transmitting messages too close together: skip this transmit if we just
-    # received the ASCMLKASteeringCmd loopback confirmation in the current CS frame
-    if (self.frame - self.last_steer_frame) >= steer_step and not CS.loopback_lka_steering_cmd_updated:
+    # Avoid GM EPS faults when transmitting messages too close together: skip this transmit if we
+    # received the ASCMLKASteeringCmd loopback confirmation too recently
+    last_lka_steer_msg_ms = (now_nanos - CS.loopback_lka_steering_cmd_ts_nanos) * 1e-6
+    if (self.frame - self.last_steer_frame) >= steer_step and last_lka_steer_msg_ms > MIN_STEER_MSG_INTERVAL_MS:
       # Initialize ASCMLKASteeringCmd counter using the camera until we get a msg on the bus
-      if not self.sent_lka_steering_cmd:
+      if CS.loopback_lka_steering_cmd_ts_nanos == 0:
         self.lka_steering_cmd_counter = CS.pt_lka_steering_cmd_counter + 1
 
       if CC.latActive:
         new_steer = int(round(actuators.steer * self.params.STEER_MAX))
-        apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorque, self.params)
+        apply_steer = apply_driver_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorque, self.params)
       else:
         apply_steer = 0
 
