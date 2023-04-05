@@ -48,7 +48,6 @@ DetailWidget::DetailWidget(ChartsWidget *charts, QWidget *parent) : charts(chart
 
   // msg widget
   splitter = new QSplitter(Qt::Vertical, this);
-  splitter->setAutoFillBackground(true);
   splitter->addWidget(binary_view = new BinaryView(this));
   splitter->addWidget(signal_view = new SignalView(charts, this));
   binary_view->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
@@ -177,7 +176,7 @@ void DetailWidget::removeMsg() {
 // EditMessageDialog
 
 EditMessageDialog::EditMessageDialog(const MessageId &msg_id, const QString &title, int size, QWidget *parent)
-    : original_name(title), QDialog(parent) {
+    : original_name(title), msg_id(msg_id), QDialog(parent) {
   setWindowTitle(tr("Edit message: %1").arg(msg_id.toString()));
   QFormLayout *form_layout = new QFormLayout(this);
 
@@ -207,8 +206,7 @@ void EditMessageDialog::validateName(const QString &text) {
   bool valid = text.compare(UNTITLED, Qt::CaseInsensitive) != 0;
   error_label->setVisible(false);
   if (!text.isEmpty() && valid && text != original_name) {
-    valid = std::none_of(dbc()->messages().begin(), dbc()->messages().end(),
-                         [&text](auto &m) { return m.second.name == text; });
+    valid = dbc()->msg(msg_id.source, text) == nullptr;
     if (!valid) {
       error_label->setText(tr("Name already exists"));
       error_label->setVisible(true);
