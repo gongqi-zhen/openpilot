@@ -7,9 +7,9 @@ class ReplayStream : public AbstractStream {
   Q_OBJECT
 
 public:
-  ReplayStream(uint32_t replay_flags, QObject *parent);
+  ReplayStream(QObject *parent);
   ~ReplayStream();
-  bool loadRoute(const QString &route, const QString &data_dir);
+  bool loadRoute(const QString &route, const QString &data_dir, uint32_t replay_flags = REPLAY_FLAG_NONE);
   bool eventFilter(const Event *event);
   void seekTo(double ts) override { replay->seekTo(std::max(double(0), ts), false); };
   inline QString routeName() const override { return replay->route()->name(); }
@@ -21,14 +21,28 @@ public:
   inline QDateTime currentDateTime() const override { return replay->currentDateTime(); }
   inline const Route *route() const override { return replay->route(); }
   inline void setSpeed(float speed) override { replay->setSpeed(speed); }
+  inline float getSpeed() const { return replay->getSpeed(); }
   inline bool isPaused() const override { return replay->isPaused(); }
   void pause(bool pause) override;
   const std::vector<Event*> *rawEvents() const override { return replay->events(); }
   inline const std::vector<std::tuple<int, int, TimelineType>> getTimeline() override { return replay->getTimeline(); }
+  static AbstractOpenStreamWidget *widget(AbstractStream **stream);
 
 private:
   void mergeSegments();
   std::unique_ptr<Replay> replay = nullptr;
-  uint32_t replay_flags = REPLAY_FLAG_NONE;
   std::set<int> processed_segments;
+};
+
+class OpenReplayWidget : public AbstractOpenStreamWidget {
+  Q_OBJECT
+
+public:
+  OpenReplayWidget(AbstractStream **stream);
+  bool open() override;
+  QString title() override { return tr("&Replay"); }
+
+private:
+  QLineEdit *route_edit;
+  QComboBox *choose_video_cb;
 };

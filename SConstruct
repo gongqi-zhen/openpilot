@@ -5,6 +5,8 @@ import sysconfig
 import platform
 import numpy as np
 
+import SCons.Errors
+
 TICI = os.path.isfile('/TICI')
 AGNOS = TICI
 
@@ -118,7 +120,7 @@ else:
       f"#third_party/libyuv/{yuv_dir}/lib",
       f"{brew_prefix}/lib",
       f"{brew_prefix}/Library",
-      f"{brew_prefix}/opt/openssl/lib",
+      f"{brew_prefix}/opt/openssl@3.0/lib",
       f"{brew_prefix}/Cellar",
       "/System/Library/Frameworks/OpenGL.framework/Libraries",
     ]
@@ -131,7 +133,7 @@ else:
     cxxflags += ["-DGL_SILENCE_DEPRECATION"]
     cpppath += [
       f"{brew_prefix}/include",
-      f"{brew_prefix}/opt/openssl/include",
+      f"{brew_prefix}/opt/openssl@3.0/include",
     ]
   # Linux 86_64
   else:
@@ -311,7 +313,11 @@ else:
   elif arch != "Darwin":
     qt_libs += ["GL"]
 
-qt_env.Tool('qt')
+try:
+  qt_env.Tool('qt3')
+except SCons.Errors.UserError:
+  qt_env.Tool('qt')
+
 qt_env['CPPPATH'] += qt_dirs + ["#selfdrive/ui/qt/"]
 qt_flags = [
   "-D_REENTRANT",
