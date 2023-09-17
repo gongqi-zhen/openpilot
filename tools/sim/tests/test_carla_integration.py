@@ -6,10 +6,10 @@ import os
 from multiprocessing import Queue
 
 from cereal import messaging
-from common.basedir import BASEDIR
-from selfdrive.manager.helpers import unblock_stdout
-from tools.sim import bridge
-from tools.sim.bridge import CarlaBridge
+from openpilot.common.basedir import BASEDIR
+from openpilot.selfdrive.manager.helpers import unblock_stdout
+from openpilot.tools.sim.run_bridge import parse_args
+from openpilot.tools.sim.bridge.carla import CarlaBridge
 
 CI = "CI" in os.environ
 
@@ -42,7 +42,7 @@ class TestCarlaIntegration(unittest.TestCase):
 
     sm = messaging.SubMaster(['controlsState', 'carEvents', 'managerState'])
     q = Queue()
-    carla_bridge = CarlaBridge(bridge.parse_args([]))
+    carla_bridge = CarlaBridge(parse_args([]))
     p_bridge = carla_bridge.run(q, retries=10)
     self.processes.append(p_bridge)
 
@@ -68,7 +68,8 @@ class TestCarlaIntegration(unittest.TestCase):
         no_car_events_issues_once = True
         break
 
-    self.assertTrue(no_car_events_issues_once, f"Failed because no messages received, or CarEvents '{car_event_issues}' or processes not running '{not_running}'")
+    self.assertTrue(no_car_events_issues_once,
+                    f"Failed because no messages received, or CarEvents '{car_event_issues}' or processes not running '{not_running}'")
 
     start_time = time.monotonic()
     min_counts_control_active = 100

@@ -1,14 +1,27 @@
-Version 0.9.4 (2023-XX-XX)
+Version 0.9.5 (2023-09-27)
 ========================
-* Navigate on openpilot
-  * When navigation has a destination openpilot will input the map information into the model, generally improving behavior
-  * When navigating on openpilot, openpilot will keep left or right appropriately at forks/exits and take turns
-  * When navigating on openpilot, lane change behavior is unchanged and still activated by the driver 
+* New driving model
+  * Improved navigate on openpilot performance using navigation instructions as an additional model input
+* Hyundai Azera 2022 support thanks to sunnyhaibin!
+* Hyundai Ioniq 6 2023 support thanks to sunnyhaibin, alamo3, and sshane!
+* Hyundai Kona Electric 2023 (Korean version) support thanks to sunnyhaibin and haram-KONA!
+* Kia K8 Hybrid (with HDA II) 2023 support thanks to sunnyhaibin!
+* Kia Sorento Hybrid 2023 support thanks to sunnyhaibin!
+* Lexus IS 2023 support thanks to L3R5!
+
+Version 0.9.4 (2023-07-27)
+========================
+* comma 3X support
+* Navigate on openpilot in Experimental mode
+  * When navigation has a destination, openpilot will input the map information into the model, which provides useful context to help the model understand the scene
+  * When navigating on openpilot, openpilot will keep left or right appropriately at forks and exits
+  * When navigating on openpilot, lane change behavior is unchanged and still activated by the driver
+  * When navigate on openpilot is active, the path on the map is green
 * UI updates
   * Navigation settings moved to home screen and map
-* UI alerts rework
   * Border color always shows engagement status. Blue means disengaged, green means engaged, and grey means engaged with human overriding
-  * Alerts are shown inside the border. Black/grey means info, orange means warning, and red means critical alert 
+  * Alerts are shown inside the border. Black means info, orange means warning, and red means critical alert
+* Bookmarked segments are preserved on the device's storage
 * Ford Focus 2018 support
 * Kia Carnival 2023 support thanks to sunnyhaibin!
 
