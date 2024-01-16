@@ -1,5 +1,5 @@
 import math
-import threading
+import multiprocessing
 import numpy as np
 
 from abc import ABC, abstractmethod
@@ -49,8 +49,12 @@ class SimulatorState:
 
     self.user_gas: float = 0
     self.user_brake: float = 0
+    self.user_torque: float = 0
 
     self.cruise_button = 0
+
+    self.left_blinker = False
+    self.right_blinker = False
 
   @property
   def speed(self):
@@ -61,7 +65,7 @@ class World(ABC):
   def __init__(self, dual_camera):
     self.dual_camera = dual_camera
 
-    self.image_lock = threading.Lock()
+    self.image_lock = multiprocessing.Semaphore(value=0)
     self.road_image = np.zeros((H, W, 3), dtype=np.uint8)
     self.wide_road_image = np.zeros((H, W, 3), dtype=np.uint8)
 
@@ -83,4 +87,8 @@ class World(ABC):
 
   @abstractmethod
   def close(self):
+    pass
+
+  @abstractmethod
+  def reset(self):
     pass

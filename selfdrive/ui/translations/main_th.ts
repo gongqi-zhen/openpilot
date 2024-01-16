@@ -66,6 +66,26 @@
         <source>Prevent large data uploads when on a metered connection</source>
         <translation>ปิดการอัพโหลดข้อมูลขนาดใหญ่เมื่อเชื่อมต่อผ่านเซลลูล่าร์</translation>
     </message>
+    <message>
+        <source>Hidden Network</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>CONNECT</source>
+        <translation type="unfinished">เชื่อมต่อ</translation>
+    </message>
+    <message>
+        <source>Enter SSID</source>
+        <translation type="unfinished">ป้อนค่า SSID</translation>
+    </message>
+    <message>
+        <source>Enter password</source>
+        <translation type="unfinished">ใส่รหัสผ่าน</translation>
+    </message>
+    <message>
+        <source>for &quot;%1&quot;</source>
+        <translation type="unfinished">สำหรับ &quot;%1&quot;</translation>
+    </message>
 </context>
 <context>
     <name>AnnotatedCameraWidget</name>
@@ -226,8 +246,8 @@
         <translation>ปิดเครื่อง</translation>
     </message>
     <message>
-        <source>openpilot requires the device to be mounted within 4° left or right and within 5° up or 8° down. openpilot is continuously calibrating, resetting is rarely required.</source>
-        <translation>openpilot กำหนดให้ติดตั้งอุปกรณ์ โดยสามารถเอียงด้านซ้ายหรือขวาไม่เกิน 4° และเอียงขึ้นด้านบนไม่เกิน 5° หรือเอียงลงด้านล่างไม่เกิน 8° openpilot ทำการคาลิเบรทอย่างต่อเนื่อง แทบจะไม่จำเป็นต้องทำการรีเซ็ตการคาลิเบรท</translation>
+        <source>openpilot requires the device to be mounted within 4° left or right and within 5° up or 9° down. openpilot is continuously calibrating, resetting is rarely required.</source>
+        <translation>openpilot กำหนดให้ติดตั้งอุปกรณ์ โดยสามารถเอียงด้านซ้ายหรือขวาไม่เกิน 4° และเอียงขึ้นด้านบนไม่เกิน 5° หรือเอียงลงด้านล่างไม่เกิน 9° openpilot ทำการคาลิเบรทอย่างต่อเนื่อง แทบจะไม่จำเป็นต้องทำการรีเซ็ตการคาลิเบรท</translation>
     </message>
     <message>
         <source> Your device is pointed %1° %2 and %3° %4.</source>
@@ -275,34 +295,7 @@
     </message>
 </context>
 <context>
-    <name>DriveStats</name>
-    <message>
-        <source>Drives</source>
-        <translation>การขับขี่</translation>
-    </message>
-    <message>
-        <source>Hours</source>
-        <translation>ชั่วโมง</translation>
-    </message>
-    <message>
-        <source>ALL TIME</source>
-        <translation>ทั้งหมด</translation>
-    </message>
-    <message>
-        <source>PAST WEEK</source>
-        <translation>สัปดาห์ที่ผ่านมา</translation>
-    </message>
-    <message>
-        <source>KM</source>
-        <translation>กิโลเมตร</translation>
-    </message>
-    <message>
-        <source>Miles</source>
-        <translation>ไมล์</translation>
-    </message>
-</context>
-<context>
-    <name>DriverViewScene</name>
+    <name>DriverViewWindow</name>
     <message>
         <source>camera starting</source>
         <translation>กำลังเปิดกล้อง</translation>

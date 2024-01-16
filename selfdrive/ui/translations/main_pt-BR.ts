@@ -66,6 +66,26 @@
         <source>Prevent large data uploads when on a metered connection</source>
         <translation>Evite grandes uploads de dados quando estiver em uma conexão limitada</translation>
     </message>
+    <message>
+        <source>Hidden Network</source>
+        <translation>Rede Oculta</translation>
+    </message>
+    <message>
+        <source>CONNECT</source>
+        <translation>CONECTE</translation>
+    </message>
+    <message>
+        <source>Enter SSID</source>
+        <translation>Digite o SSID</translation>
+    </message>
+    <message>
+        <source>Enter password</source>
+        <translation>Insira a senha</translation>
+    </message>
+    <message>
+        <source>for &quot;%1&quot;</source>
+        <translation>para &quot;%1&quot;</translation>
+    </message>
 </context>
 <context>
     <name>AnnotatedCameraWidget</name>
@@ -226,8 +246,8 @@
         <translation>Desligar</translation>
     </message>
     <message>
-        <source>openpilot requires the device to be mounted within 4° left or right and within 5° up or 8° down. openpilot is continuously calibrating, resetting is rarely required.</source>
-        <translation>O openpilot requer que o dispositivo seja montado dentro de 4° esquerda ou direita e dentro de 5° para cima ou 8° para baixo. O openpilot está continuamente calibrando, resetar raramente é necessário.</translation>
+        <source>openpilot requires the device to be mounted within 4° left or right and within 5° up or 9° down. openpilot is continuously calibrating, resetting is rarely required.</source>
+        <translation>O openpilot requer que o dispositivo seja montado dentro de 4° esquerda ou direita e dentro de 5° para cima ou 9° para baixo. O openpilot está continuamente calibrando, resetar raramente é necessário.</translation>
     </message>
     <message>
         <source> Your device is pointed %1° %2 and %3° %4.</source>
@@ -275,34 +295,7 @@
     </message>
 </context>
 <context>
-    <name>DriveStats</name>
-    <message>
-        <source>Drives</source>
-        <translation>Dirigidas</translation>
-    </message>
-    <message>
-        <source>Hours</source>
-        <translation>Horas</translation>
-    </message>
-    <message>
-        <source>ALL TIME</source>
-        <translation>TOTAL</translation>
-    </message>
-    <message>
-        <source>PAST WEEK</source>
-        <translation>SEMANA PASSADA</translation>
-    </message>
-    <message>
-        <source>KM</source>
-        <translation>KM</translation>
-    </message>
-    <message>
-        <source>Miles</source>
-        <translation>Milhas</translation>
-    </message>
-</context>
-<context>
-    <name>DriverViewScene</name>
+    <name>DriverViewWindow</name>
     <message>
         <source>camera starting</source>
         <translation>câmera iniciando</translation>
