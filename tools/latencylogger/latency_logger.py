@@ -13,13 +13,11 @@ from openpilot.tools.lib.logreader import LogReader
 DEMO_ROUTE = "9f583b1d93915c31|2022-05-18--10-49-51--0"
 
 SERVICES = ['camerad', 'modeld', 'plannerd', 'controlsd', 'boardd']
-# Retrieve controlsd frameId from lateralPlan, mismatch with longitudinalPlan will be ignored
 MONOTIME_KEYS = ['modelMonoTime', 'lateralPlanMonoTime']
 MSGQ_TO_SERVICE = {
   'roadCameraState': 'camerad',
   'wideRoadCameraState': 'camerad',
   'modelV2': 'modeld',
-  'lateralPlan': 'plannerd',
   'longitudinalPlan': 'plannerd',
   'sendcan': 'controlsd',
   'controlsState': 'controlsd'
@@ -92,7 +90,7 @@ def read_logs(lr):
   return (data, frame_mismatches)
 
 # This is not needed in 3.10 as a "key" parameter is added to bisect
-class KeyifyList(object):
+class KeyifyList:
   def __init__(self, inner, key):
     self.inner = inner
     self.key = key
